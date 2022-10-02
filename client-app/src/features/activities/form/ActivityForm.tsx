@@ -1,16 +1,15 @@
+import { observer } from "mobx-react-lite";
 import React, { ChangeEvent, useState } from "react";
 import { Button, Form, Segment } from "semantic-ui-react";
 import { Activity } from "../../../app/models/activity";
+import { useStore } from "../../../app/stores/Store";
 
-interface Props {
-     activity: Activity | undefined;
-     closeForm: () => void;
-     createOrEdit: (activity: Activity) => void;
-     submitting: boolean;
-}
- export default function ActivityForm({closeForm, activity: selectedActivity, createOrEdit, submitting}: Props) {
+ export default observer (function ActivityForm() {
 
-    const initialState = selectedActivity ?? {
+    const {activityStore} = useStore();
+    const {createActivity, updateActivity, loading} = activityStore;
+
+    const initialState = activityStore.selectedActivity ?? {
         id: '',
         title: '',
         category: '',
@@ -23,7 +22,7 @@ interface Props {
     const [activity, setActivity] = useState(initialState);
 
     function handleSubmit() {
-        createOrEdit(activity);
+        activity.id ? updateActivity(activity) : createActivity (activity);
     }
 
     function handleInputChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
@@ -40,10 +39,10 @@ interface Props {
                 <Form.Input placeholder='Date' type="date" value={activity.date} name='date' onChange={handleInputChange}/>
                 <Form.Input placeholder='City'  value={activity.city} name='city' onChange={handleInputChange}/>
                 <Form.Input placeholder='Venue'  value={activity.venue} name='venue' onChange={handleInputChange}/>
-                <Button floated="right" positive type="submit" content='Submit' loading={submitting}/>
-                <Button onClick={closeForm} floated="right" type="button" content='Cancel'/>
+                <Button floated="right" positive type="submit" content='Submit' loading={loading}/>
+                <Button onClick={activityStore.closeForm} floated="right" type="button" content='Cancel'/>
                 
             </Form>
         </Segment>
     )
- }
+ })
