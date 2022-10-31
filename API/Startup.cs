@@ -20,6 +20,12 @@ using Application.Core;
 using FluentValidation.AspNetCore;
 using FluentValidation;
 using API.Middleware;
+using Domain;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using API.Services;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace API
 {
@@ -36,7 +42,30 @@ namespace API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers(); 
+            services.AddControllers();
+
+            services.AddIdentityCore<AppUser>(opt =>
+           {
+               opt.Password.RequireNonAlphanumeric = false;
+           })
+           .AddEntityFrameworkStores<DataContext>()
+           .AddSignInManager<SignInManager<AppUser>>();
+
+           var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("super secret hey"));
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(opt => {
+                opt.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = key,
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                    
+                };
+            });
+            services.AddScoped<TokenService>();
+            
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebAPIv5", Version = "v1" });
@@ -56,6 +85,7 @@ namespace API
             });
             services.AddMediatR(typeof(List.Handler).Assembly);
             services.AddAutoMapper(typeof(MappingProfiles).Assembly);
+           
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -75,6 +105,8 @@ namespace API
             app.UseRouting();
 
             app.UseCors("CorsPolicy");
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
