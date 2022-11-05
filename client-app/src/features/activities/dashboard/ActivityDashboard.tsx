@@ -16,7 +16,7 @@ const {loadActivities, activityRegistry} = activityStore;
   },[activityRegistry.size, loadActivities])
 
 
-if(activityStore.loadingInitial) return <Loading content='Loading App'/>
+if(activityStore.loadingInitial) return <Loading content='Loading Activities...'/>
 
     return(
         <Grid>
